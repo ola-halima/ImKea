@@ -279,7 +279,7 @@ int get_images(char*** images, char* query, int nResults) {
 char* make_imkea_query_url(char** colorStrings, int nColors) {
 	char query[URL_MAX];
 	
-	strcpy(query, "interior+design"); 
+	strcpy(query, "interior+decor"); 
 	int i;
 	for (i = 0; i < nColors; i++) {
 		char* colorString = colorStrings[i];
