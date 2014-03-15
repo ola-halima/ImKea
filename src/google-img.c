@@ -318,15 +318,3 @@ void find_designs(char** colorStrings, int nColors) {
 	}
 }
 
-int main(int argc, char** argv) {
-	char** images;
-
-	if (argc != 3) {
-		printf("Usage: google-img <query> <nResults>");
-		return EXIT_FAILURE;
-	}
-
-	int nDownloaded = get_images(&images, argv[1], atoi(argv[2]));
-	return 0;
-}
-

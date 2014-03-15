@@ -7,12 +7,15 @@
 //
 
 #include <stdio.h>
+#include "google-img.h"
 
 int main(int argc, const char * argv[])
 {
+   char** images;
+   int nDownloaded = get_images(&images, argv[1], atoi(argv[2]));
 
     // insert code here...
-    printf("Hello, World!\n");
+
     return 0;
 }
 
