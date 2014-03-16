@@ -23,6 +23,7 @@ int main(int argc, char ** argv) {
             **subImages; // small images created from the source image
     CvScalar *scolors; // the average color of the sub images of the source image
     pixelColor *pColor; // the pixel colors possible
+    pixelColor *pColorSort; //colors in sorted order from most recurrent
     int pSize = 0;
     char* res; //resulting string to search
 
@@ -71,7 +72,8 @@ int main(int argc, char ** argv) {
         printf("- %s : %d\n", pColor[i].name, pColor[i].numOccur);
     }
     
-    res = findClosest(pColor, pSize);
+    pColorSort = malloc(sizeof(pixelColor) * pSize);
+    res = findClosest(pColor, &pColorSort, pSize);
     printf("Final String: %s\n\n", res);
 
     printf("You searched for: %s\n", searchTerm); 

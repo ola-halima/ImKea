@@ -232,14 +232,13 @@ double deltaE(CvScalar scolor, double L2, double A2, double B2){
 
 /*
  * Finds the three most recurring colors in all pictures analyzed
- * @param pColor    Array containing all colors found
- * @returns         String containing names of most recurrent colors
+ * @param pColor        Array containing all colors found
+ * @param pColorSort    Array to return sorted colors
+ * @param pSize         Number of colors in pColor
+ * @returns             String containing names of most recurrent colors
  */
-char* findClosest(pixelColor *pColor, int pSize){
-    pixelColor first;
-    pixelColor second;
-    pixelColor third; // ranking of most recurrent colors
-    int i; // iteration
+char* findClosest(pixelColor *pColor, pixelColor **pColorSort, int pSize){
+    int i,j; // iteration
     char* rv; //return value
     
     rv = malloc(sizeof(char*) * 2048);
@@ -253,78 +252,51 @@ char* findClosest(pixelColor *pColor, int pSize){
         strcat(rv, "Interior Decor");
         return rv;
     }
-    
-    //set initial largest values
-    if(pColor[0].numOccur > pColor[1].numOccur){
-        if (pColor[0].numOccur > pColor[2].numOccur) {
-            if (pColor[2].numOccur > pColor[1].numOccur) {
-                first = pColor[0];
-                second = pColor[2];
-                third = pColor[1];
-            }
-            else{
-                first = pColor[0];
-                second = pColor[1];
-                third = pColor[2];
+ 
+    //set initial color
+    (*pColorSort)[0] = pColor[0];
+    int numSortedColors = 1;
+    for (i = 1; i < pSize; ++i) {
+        int minimum = 0; //
+        for (j = 0; j < pSize; ++j) {
+            if (pColor[i].numOccur > (*pColorSort)[j].numOccur) {
+                reorderColors(&(*pColorSort), pColor[i], j, numSortedColors);
+                ++numSortedColors;
+                minimum = 1;
             }
         }
-        else if(pColor[0].numOccur < pColor[2].numOccur){
-            first = pColor[2];
-            second = pColor[0];
-            third = pColor[1];
-        }
-    }
-    else if (pColor[1].numOccur > pColor[0].numOccur){
-        if (pColor[1].numOccur > pColor[2].numOccur) {
-            if (pColor[2].numOccur > pColor[0].numOccur) {
-                first = pColor[1];
-                second = pColor[2];
-                third = pColor[0];
-            }
-            else{
-                first = pColor[1];
-                second = pColor[0];
-                third = pColor[2];
-            }
-        }
-        else if(pColor[1].numOccur < pColor[2].numOccur){
-            first = pColor[2];
-            second = pColor[1];
-            third = pColor[0];
-        }
-    }
-    
-    for(i = 3; i < pSize; ++i){
-        int occur = pColor[i].numOccur;
-        if(occur > first.numOccur){
-            pixelColor tmp = first;
-            pixelColor tmp2 = second;
-            
-            //replace first, second and third
-            first = pColor[i];
-            second.name = strdup(tmp.name); second.numOccur = tmp.numOccur;
-            third.name = strdup(tmp2.name); third.numOccur = tmp2.numOccur;
-            
-        } else if(occur > second.numOccur){
-            pixelColor tmp = second;
-            second = pColor[i];
-            
-            third.name = strdup(tmp.name); third.numOccur = tmp.numOccur;
-            
-        } else if(occur > third.numOccur){
-            third = pColor[i];
+        
+        if(minimum == 0){
+            (*pColorSort)[numSortedColors] = pColor[i];
         }
     }
     
     //create final string to search
-    strcat(rv, first.name);
+    strcat(rv, (*pColorSort)[0].name);
     strcat(rv, " ");
-    strcat(rv, second.name);
+    strcat(rv, (*pColorSort)[1].name);
     strcat(rv, " ");
-    strcat(rv, third.name);
+    strcat(rv, (*pColorSort)[2].name);
     strcat(rv, " ");
     strcat(rv, "Interior Decor");
     return rv;
+}
+
+/*
+ * Reorders elements in pixelColor*
+ * @param pColorSort        Array to reorder
+ * @param pColor            color to be inserted
+ * @param position          position to insert color
+ * @param numSortedColors   size of pColorSort array
+ */
+void reorderColors(pixelColor **pColorSort, pixelColor pColor, int position, int numSortedColors){
+    int i; //for interation
+    
+    for(i = numSortedColors; i > position ; --i){
+        //pixelColor tmp = (*pColorSort)[i];
+        (*pColorSort)[i] = (*pColorSort)[i-1];
+    }
+    (*pColorSort)[position] = pColor;
 }
 
 /**
