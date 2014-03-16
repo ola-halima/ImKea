@@ -6,7 +6,6 @@
  *  Copyright (c) 2014 ImKea. All rights reserved.
  */
 
-// Images from http://press.liacs.nl/mirflickr/#sec_download
 #include "google-img.h"
 #include "imkea-img.h"
 #include "img-color-map.h"
@@ -14,40 +13,43 @@
 #define VIS_SIZE 10
 
 int main(int argc, char ** argv) {
-    char* searchTerm;
-    int numberOfImages, // the number of images loaded to make the mosaic
-            numColumns, // the number of horizontal images in the result
-            numRows, // the number of vertical images in the result
-            i; // just an iterator
-    IplImage **timages, // the small images loaded from the disk
-            **subImages; // small images created from the source image
-    CvScalar *scolors; // the average color of the sub images of the source image
+    char *searchTerm; // user input, what to search for that will return images to analyze
+    int numberOfImages, // the number of images loaded to analyze colors
+            numColumns, // the number of horizontal subimages per image to analyze
+            numRows, // the number of vertical subimages per image to analyze
+            i;
+    char **images; // filenames of images downloaded to analyze
+    IplImage **timages, // Loaded IplImages from char** images
+            **subImages; // small sub images created from the source image
+    CvScalar *scolors; // the average colors of the sub images of the source image
     pixelColor *pColor; // the pixel colors possible
     int pSize = 0;
-    char* res; //resulting string to search
+    char* design_query; //resulting query to pass to search engine to find designs
+
+    searchTerm = argv[1];
+
+    // Do image search for searchTerm, download images to analyze
+    printf("Downloading images...");
+    numberOfImages = download_images(&images, searchTerm, 5);
+    if (numberOfImages == 0) {
+        fprintf(stderr, "No images downloaded.\n");
+        return EXIT_FAILURE;
+    }
+
+    // Load downloaded images
+    printf("Loading images into analyzer...\n");
+    if ((timages = loadImages(numberOfImages, images)) == NULL ) {
+        fprintf(stderr, "Could not load images.");
+        return EXIT_FAILURE;
+    }
 
     // number of rows and columns for subimages
     numColumns = 30;
     numRows = 30;
-
-    searchTerm = argv[1];
-
-    // The number of images passed in
-    char** images;
-    numberOfImages = get_images(&images, searchTerm, 5);
-    for (i = 0; i < numberOfImages; i++) {
-        printf("%s\n", images[i]);
-    }
-
-    // Load the thumbnail images
-    printf("Loading images into analyser...\n");
-    if ((timages = loadImages(numberOfImages, images)) == NULL ) {
-        fprintf(stderr, "Could not load images!");
+    if((pColor = malloc(sizeof(pixelColor)*36)) == NULL) { //create space for all possible colors
+        fprintf(stderr, "Error allocating memory for possible color list.\n");
         return EXIT_FAILURE;
     }
-    
-    pColor = NULL;
-    pColor = malloc(sizeof(pixelColor) * 36); //create space for all colors
 
     for(i = 0; i < numberOfImages; ++i){
         // create the sub images
@@ -55,28 +57,30 @@ int main(int argc, char ** argv) {
         subImages = getSubImages(timages[i], numColumns, numRows);
 
         // compute the average colors of the sub images
-        //printf("Computing sub image colors\n");
         printf("Getting avg colors of %s\n", images[i]);
         scolors = getAvgColors(subImages, numColumns * numRows);
         
-        //printf("Finding closest images\n");
-        
+	// assign found dominant colors to image
         printf("Assigning colors for %s\n\n", images[i]);
-        if(assignColor(scolors, &pColor, &pSize, numColumns * numRows) != 0) // map RGB to color name{
+        if(assignColor(scolors, &pColor, &pSize, numColumns * numRows) != 0) { // map RGB to color name
             perror("Error mapping RGB to general color");
         }
+    }
     
+    // print dominant colors found
     printf("Colors in the images are:\n");
     for(i = 0; i < pSize; ++i){
         printf("- %s : %d\n", pColor[i].name, pColor[i].numOccur);
     }
     
-    res = findClosest(pColor, pSize);
-    printf("Final String: %s\n\n", res);
+    // find most dominant, generate query string
+    design_query = findClosest(pColor, pSize);
+    printf("final query string: %s\n\n", design_query);
 
-    printf("You searched for: %s\n", searchTerm); 
-    find_designs(res);
+    printf("You searched for: %s\n", searchTerm);
 
+    // search for designs according to query string 
+    open_image_search(design_query);
     printf("\n");
     
     return EXIT_SUCCESS;

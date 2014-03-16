@@ -116,7 +116,7 @@ CURLcode get_results(char** results, char* url) {
  * @param nResults		Number of results to return
  * @returns			CURLcode returned by curl operation
 */
-int get_image_results(char** results, char* query, int nResults) {
+int get_json_results(char** results, char* query, int nResults) {
 	
 	char* cseId, *apiKey;
 	if ((cseId = getenv("IMKEA_CSEID")) == NULL) {
@@ -142,7 +142,7 @@ int get_image_results(char** results, char* query, int nResults) {
  * Parses a Google Custom Image Search JSON object for image URL results.
  * @param imageURLs		String array to store image URL results
  * @param nImages		Number of image URLs to extract
- * @param jsonResult		JSON object result of Google CSE query
+ * @param jsonResult		JSON object result of a Google CSE query
  * @returns			Number of image URLs successfully extracted
  */
 int extract_image_urls(char*** imageURLs, int* nImages, char* jsonResult) {
@@ -233,15 +233,15 @@ int download_image(char* filename, char* url) {
 }
 
 /**
- * Makes a Google Custom Image Search query.
- * @param images		Array of full paths to images found
+ * Makes a Google Custom Image Search query, and downloads the results.
+ * @param images		Array of full paths of images downloaded
  * @param query			What to search for
- * @param nResults		Number of results to return
- * @return			Number of images successfully returned (size of images)
+ * @param nResults		Number of results to attempt to retrieve
+ * @return			Number of images successfully downloaded
  */
-int get_images(char*** images, char* query, int nResults) {
+int download_images(char*** images, char* query, int nResults) {
         char* results;
-        CURLcode r = get_image_results(&results, query, nResults);
+        CURLcode r = get_json_results(&results, query, nResults);
         if (r != CURLE_OK) {
                 fprintf(stderr, "Request unsuccessful: %s\n", curl_easy_strerror(r));
                 return -1;
@@ -271,20 +271,6 @@ int get_images(char*** images, char* query, int nResults) {
 }
 
 /**
- * Formats URL for final ImKea results webpage.
- * @param query			space delimited full query to search for
- * @returns			URL of image search results
- */
-char* make_imkea_query_url(char* query) {
-	replace_spaces(&query);
-	char* query_url = (char*) malloc(URL_MAX*sizeof(char));
-	char* url_f = IMKEA_OUTPUT_SEARCH ? IMKEA_OUTPUT_SEARCH_F : OUTPUT_SEARCH_F;
-	sprintf(query_url, url_f, query);
-	return query_url;
-}
-
-
-/**
  * Opens a URL in the user's default browser.
  * @param URL			URL to open
  * @returns			0 if successful
@@ -297,11 +283,15 @@ int open_webpage(char* URL) {
 }
 
 /**
- * Formats a query for interior design based on provided colors and opens that webpage in the user's default browser.
+ * Opens an image search based on a query.
  * @param query			space delimited full query to search for
 */
-void find_designs(char* query) {
-	char* url = make_imkea_query_url(query);
+void open_image_search(char* query) {
+	replace_spaces(&query);
+	char* url = (char*) malloc(URL_MAX*sizeof(char));
+	char* url_f = IMKEA_OUTPUT_SEARCH ? IMKEA_OUTPUT_SEARCH_F : OUTPUT_SEARCH_F;
+	sprintf(url, url_f, query);
+
 	if (open_webpage(url) != 0) {
 		fprintf(stderr, "Error: could not open webpage for:\n%s\n", url);
 	}
