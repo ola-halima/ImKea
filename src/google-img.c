@@ -260,7 +260,7 @@ int download_images(char*** images, char* query, int nResults) {
 	int nImagesDownloaded = 0;
         for (i = 0; i < nImages; i++) {
 		(*images)[i] = malloc(25*sizeof(char));
-		sprintf((*images)[i], "/tmp/imkea-img%d", i);
+		sprintf((*images)[i], "imkea-src-images/img%d", i);
                 int r = download_image((*images)[i], imageURLs[i]);
 		if (r == 0) {
 			nImagesDownloaded++;
