@@ -23,6 +23,6 @@ int get_images(char*** images, char* query, int nResults);
  * @param colorStrings                  Strings of colors to include in query
  * @param nColors                       Length of colorStrings
 */
-void find_designs(char** colorStrings, int nColors);
+void find_designs(char* query);
 
 #endif

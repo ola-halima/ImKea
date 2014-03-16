@@ -272,22 +272,12 @@ int get_images(char*** images, char* query, int nResults) {
 
 /**
  * Formats URL for final ImKea results webpage.
- * @param colorStrings		Strings of colors to include in query
- * @param nColors		Length of colorStrings
- * @returns			URL of interior design image search results
+ * @param query			space delimited full query to search for
+ * @returns			URL of image search results
  */
-char* make_imkea_query_url(char** colorStrings, int nColors) {
-	char query[URL_MAX];
-	
-	strcpy(query, "interior+decor"); 
-	int i;
-	for (i = 0; i < nColors; i++) {
-		char* colorString = colorStrings[i];
-		replace_spaces(&colorString);
-		strcat(query, "+");
-		strcat(query, colorString);	
-	}
-	char* query_url = malloc(URL_MAX*sizeof(char));
+char* make_imkea_query_url(char* query) {
+	replace_spaces(&query);
+	char* query_url = (char*) malloc(URL_MAX*sizeof(char));
 	char* url_f = IMKEA_OUTPUT_SEARCH ? IMKEA_OUTPUT_SEARCH_F : OUTPUT_SEARCH_F;
 	sprintf(query_url, url_f, query);
 	return query_url;
@@ -308,11 +298,10 @@ int open_webpage(char* URL) {
 
 /**
  * Formats a query for interior design based on provided colors and opens that webpage in the user's default browser.
- * @param colorStrings                  Strings of colors to include in query
- * @param nColors                       Length of colorStrings
+ * @param query			space delimited full query to search for
 */
-void find_designs(char** colorStrings, int nColors) {
-	char* url = make_imkea_query_url(colorStrings, nColors);
+void find_designs(char* query) {
+	char* url = make_imkea_query_url(query);
 	if (open_webpage(url) != 0) {
 		fprintf(stderr, "Error: could not open webpage for:\n%s\n", url);
 	}
