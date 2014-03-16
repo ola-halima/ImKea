@@ -19,10 +19,9 @@
 int get_images(char*** images, char* query, int nResults);
 
 /**
- * Formats a query for interior design based on provided colors and opens that webpage in the user's default browser.
- * @param colorStrings                  Strings of colors to include in query
- * @param nColors                       Length of colorStrings
+ * Opens an image search based on a query.
+ * @param query			space delimited full query to search for
 */
-void find_designs(char* query);
+void open_image_search(char* query);
 
 #endif
