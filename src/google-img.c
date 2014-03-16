@@ -19,7 +19,7 @@
 #define URL_MAX 256
 #define RESPONSE_MAX 4096
 
-#define INPUT_SEARCH_F "https://www.googleapis.com/customsearch/v1?searchType=image&cx=%s&key=%s&num=%d&q=%s"
+#define INPUT_SEARCH_F "https://www.googleapis.com/customsearch/v1?searchType=image&fileType=jpg&cx=%s&key=%s&num=%d&q=%s"
 
 #define IMKEA_OUTPUT_SEARCH 0
 #define OUTPUT_SEARCH_F "https://www.google.com/search?tbm=isch&q=%s"

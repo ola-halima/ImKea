@@ -8,6 +8,8 @@
 
 #include "img-color-map.h"
 
+#define COLOR_MAP_FILE "assets/lab_db.txt"
+
 /**
  * Given a name, create a new pixelcolor element initialized to 1 occurrence
  * @param name	The name of the color being initialized
@@ -67,11 +69,15 @@ int assignColor(CvScalar* scolors, pixelColor** pColor, int* pSize, int numColor
  * @returns		The char name of the color that best matches RGB
  */
 char* mapColorName(CvScalar scolor){
-    FILE* f = fopen("/users/halimaolapade/Desktop/colors/lab/lab_db.txt", "r"); // file descriptor to read from
+    FILE* f;
     int i=0;
     char tok[256];
     double min = -1;
     char* cName = NULL;
+
+    if ((f = fopen(COLOR_MAP_FILE, "r")) == NULL) { // file descriptor to read from
+        fprintf(stderr, "Could not find color map file: %s\n", COLOR_MAP_FILE);
+    }
     
     while(fscanf(f, "%s", tok) > 0){ //read lines in the file
         char *tmp = strtok(tok, ",");
@@ -239,7 +245,7 @@ char* findClosest(pixelColor *pColor, int pSize){
     rv = malloc(sizeof(char*) * 2048);
     
     if(pSize < 3){
-        printf("Images has less than 3 colors");
+        printf("Images has less than 3 colors\n");
         for(i = 0; i < pSize; ++i){
             strcat(rv, pColor[i].name);
             strcat(rv, " ");
