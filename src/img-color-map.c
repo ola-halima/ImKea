@@ -231,13 +231,26 @@ double deltaE(CvScalar scolor, double L2, double A2, double B2){
 }
 
 /*
+ * Compare function that sorts pixelColors by numOccur (largest first)
+ * @param pColor0		a pixelColor
+ * @param pColor1		a pixelColor
+ * @returns			<0 if pColor0 should be before pColor1
+				0 if they are equal
+				>0 if pColor0 should be after pColor1
+*/
+int compareColorFreq(const void* pColor0, const void* pColor1) {
+	pixelColor* p0 = (pixelColor*) pColor0;
+	pixelColor* p1 = (pixelColor*) pColor1;
+	return p1->numOccur - p0->numOccur;
+}
+
+/*
  * Finds the three most recurring colors in all pictures analyzed
  * @param pColor        Array containing all colors found
- * @param pColorSort    Array to return sorted colors
  * @param pSize         Number of colors in pColor
  * @returns             String containing names of most recurrent colors
  */
-char* findClosest(pixelColor *pColor, pixelColor **pColorSort, int pSize){
+char* findClosest(pixelColor *pColor, int pSize){
     int i,j; // iteration
     char* rv; //return value
     
@@ -253,30 +266,15 @@ char* findClosest(pixelColor *pColor, pixelColor **pColorSort, int pSize){
         return rv;
     }
  
-    //set initial color
-    (*pColorSort)[0] = pColor[0];
-    int numSortedColors = 1;
-    for (i = 1; i < pSize; ++i) {
-        int minimum = 0; //
-        for (j = 0; j < pSize; ++j) {
-            if (pColor[i].numOccur > (*pColorSort)[j].numOccur) {
-                reorderColors(&(*pColorSort), pColor[i], j, numSortedColors);
-                ++numSortedColors;
-                minimum = 1;
-            }
-        }
-        
-        if(minimum == 0){
-            (*pColorSort)[numSortedColors] = pColor[i];
-        }
-    }
+    // sort pColor
+    qsort(pColor, pSize, sizeof(pixelColor), compareColorFreq);
     
     //create final string to search
-    strcat(rv, (*pColorSort)[0].name);
+    strcat(rv, pColor[0].name);
     strcat(rv, " ");
-    strcat(rv, (*pColorSort)[1].name);
+    strcat(rv, pColor[1].name);
     strcat(rv, " ");
-    strcat(rv, (*pColorSort)[2].name);
+    strcat(rv, pColor[2].name);
     strcat(rv, " ");
     strcat(rv, "Interior Decor");
     return rv;

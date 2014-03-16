@@ -23,7 +23,6 @@ int main(int argc, char ** argv) {
             **subImages; // small sub images created from the source image
     CvScalar *scolors; // the average colors of the sub images of the source image
     pixelColor *pColor; // the pixel colors possible
-    pixelColor *pColorSort; //colors in sorted order from most recurrent
     int pSize = 0;
     char* design_query; //resulting query to pass to search engine to find designs
 
@@ -68,15 +67,12 @@ int main(int argc, char ** argv) {
         }
     }
     
-    // print dominant colors found
+    // find most dominant, generate query string
+    design_query = findClosest(pColor, pSize);
     printf("Colors in the images are:\n");
     for(i = 0; i < pSize; ++i){
-        printf("- %s : %d\n", pColorSort[i].name, pColorSort[i].numOccur);
+        printf("- %s : %d\n", pColor[i].name, pColor[i].numOccur);
     }
-    
-    // find most dominant, generate query string
-    pColorSort = malloc(sizeof(pixelColor) * pSize);
-    design_query = findClosest(pColor, &pColorSort,  pSize);
     printf("final query string: %s\n\n", design_query);
 
     printf("You searched for: %s\n", searchTerm);

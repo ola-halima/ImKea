@@ -74,11 +74,10 @@ double deltaE(CvScalar scolor, double L2, double A2, double B2);
 /*
  * Finds the three most recurring colors in all pictures analyzed
  * @param pColor        Array containing all colors found
- * @param pColorSort    Array to return sorted colors
  * @param pSize         Number of colors in pColor
  * @returns             String containing names of most recurrent colors
  */
-char* findClosest(pixelColor *pColor, pixelColor **pColorSort, int pSize);
+char* findClosest(pixelColor *pColor, int pSize);
 
 /*
  * Reorders elements in pixelColor*
