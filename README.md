@@ -1,7 +1,7 @@
 ImKea
 =====
 
-####HHP Interior Decor & Design (ImKea) - software that helps users find interior decor color themes and ideas through image process and web search.
+####HHP Interior Decor & Design (ImKea) - a fun and unique software that helps users find interior decor color themes and ideas through image process and web search.
 
 ##ImKea works in the following way:
   - User inputs any word/image related to the theme they have in mind (e.g. "summer")
@@ -11,8 +11,8 @@ ImKea
   - The user is directed to the Google Images results page 
   
 ##Objectives 
-  - Analyze images for dominant colors (store and map those colors to a list of 'basic' colors)
-  - Develop color-name mapping algorithm (What constitutes red? How many color names should we map to? Which ones?)
+  - Analyze images for dominant colors (store and map those colors to a list of 'basic' colors chosen)
+  - Develop color-name mapping algorithm 
   - Use the Google Custom Search API, with C
   - Appropriate input/output for users
   - Provide users with relevant and useful results
