@@ -5,14 +5,12 @@
 88,-86,83,Lime
 46,-52,50,Green
 75,-73,68,Green
-91,-48,-14,Aqua
+91,-48,-14,Turquoise
 32,79,-108,Blue
 64,-4,-52,Blue
 26,32,-58,Blue
-43,84,-90,Violet
 33,43,-47,Purple
-60,98,-61,Pink
-81,28,5,Pink
+81,42,-27,Pink
 100,0,0,White
 44,16,49,Brown
 73,29,71,Orange
