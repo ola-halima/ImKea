@@ -15,20 +15,21 @@
  * @param numImages        The number of images to load
  * @param filenames        A list of strings of the filenames to load
  */
-IplImage** loadImages(int numImages, char ** fileNames) {
+IplImage** loadImages(int* numImages, char ** fileNames) {
     IplImage** rv; // the return result
     int i; // used for looping
 
     printf("Allocating images for analysis...\n");
-    rv = malloc(sizeof(IplImage*) * numImages);
-
-    for(i = 0; i < numImages; ++i){
+    rv = malloc(sizeof(IplImage*) * (*numImages));
+    
+    int nImagesLoaded = 0;
+    for(i = 0; i < *numImages; ++i){
         printf("Loading %s...\n", fileNames[i]);
                IplImage* img = cvLoadImage(fileNames[i], CV_LOAD_IMAGE_COLOR);
 
         if(!img){
             perror("Error: Unable to load image\n");
-            return NULL;
+            continue;
         }
         
         printf("Creating image...\n");
@@ -41,8 +42,10 @@ IplImage** loadImages(int numImages, char ** fileNames) {
         cvResize(img, finalIm, CV_LOAD_IMAGE_COLOR);
         
         // if it could not, print an error to stderr and return NULL
-        rv[i] = finalIm;
+        rv[nImagesLoaded] = finalIm;
+        ++nImagesLoaded;
     }
+    *numImages = nImagesLoaded;
     return rv;
 }
 

@@ -21,7 +21,7 @@
  * @param numImages		The number of images to load
  * @param filenames		A list of strings of the filenames to load
  */
-IplImage** loadImages(int numImages, char ** fileNames);
+IplImage** loadImages(int* numImages, char ** fileNames);
 
 /**
  * Splits up an image into numColumns by numRows sub-images and returns the results.

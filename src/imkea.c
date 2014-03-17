@@ -38,7 +38,7 @@ int main(int argc, char ** argv) {
 
     // Load downloaded images
     printf("Loading images into analyzer...\n");
-    if ((timages = loadImages(numberOfImages, images)) == NULL ) {
+    if ((timages = loadImages(&numberOfImages, images)) == NULL ) {
         fprintf(stderr, "Could not load images.");
         return EXIT_FAILURE;
     }

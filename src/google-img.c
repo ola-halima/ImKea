@@ -218,7 +218,10 @@ int download_image(char* filename, char* url) {
 		res = curl_easy_perform(handle);
 
 		curl_easy_cleanup(handle);
-		fclose(file);
+		if(fclose(file) != 0) {
+			fprintf(stderr, "Error: could not close file \"%s\" after image download.\n", filename);
+			return -1;
+		}
 	}
 	if (res != 0) {
 		fprintf(stderr, "Downloading image \"%s\" unsuccessful. CURL Result: [%d] %s\n", url, res, curl_easy_strerror(res));
@@ -259,13 +262,17 @@ int download_images(char*** images, char* query, int nResults) {
         int i;
 	int nImagesDownloaded = 0;
         for (i = 0; i < nImages; i++) {
-		(*images)[i] = malloc(25*sizeof(char));
-		sprintf((*images)[i], "imkea-src-images/img%d", i);
-                int r = download_image((*images)[i], imageURLs[i]);
+		(*images)[nImagesDownloaded] = malloc(25*sizeof(char));
+		sprintf((*images)[nImagesDownloaded], "imkea-src-images/img%d", nImagesDownloaded);
+                int r = download_image((*images)[nImagesDownloaded], imageURLs[i]);
 		if (r == 0) {
 			nImagesDownloaded++;
 		}
         }
+
+	if (VERBOSE) {
+		printf("%d images downloaded.\n", nImagesDownloaded);
+	}
 
         return nImagesDownloaded;
 }
