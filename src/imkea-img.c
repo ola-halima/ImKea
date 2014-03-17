@@ -47,6 +47,7 @@ IplImage** loadImages(int numImages, char ** fileNames) {
 }
 
 /**
+ * Taken from Lou Kratz - CS283 - Assignment 4
  * Splits up an image into numColumns by numRows sub-images and returns the results.
  *
  * @param src    The source image to split
