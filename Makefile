@@ -3,9 +3,6 @@
 CC=gcc
 EXECUTABLE=imkea
 
-LIBS_PATH = -L /usr/local/lib
-INC_PATH = -I /usr/local/include
-
 all: $(EXECUTABLE)
 
 $(EXECUTABLE) :
