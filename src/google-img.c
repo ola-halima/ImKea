@@ -7,12 +7,6 @@
 //
 
 #include "google-img.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <cv.h>
-#include <curl/curl.h>
-#include <jansson.h>
 
 #define VERBOSE 1
 
@@ -46,23 +40,23 @@ void replace_spaces(char** str) {
 struct String { char* str; size_t len; };
 
 /**
- * CURLOPT_WRITEFUNCTION callback handler 
+ * CURLOPT_WRITEFUNCTION callback handler
  * For writing CURL response data to (String *) result.
  */
 size_t write_string(void* source, size_t size, size_t nmemb, void* result) {
 	size_t realSize = size * nmemb;
 	struct String *s = (struct String *)result;
-
+    
 	s->str = realloc(s->str, s->len + realSize + 1);
 	if (s->str == NULL) {
 		fprintf(stderr, "Error reallocating memory.\n");
 		return 0;
 	}
-
+    
 	memcpy(&(s->str[s->len]), source, realSize);
 	s->len += realSize;
 	s->str[s->len] = '\0';
-
+    
 	return realSize;
 }
 
@@ -75,38 +69,37 @@ size_t write_string(void* source, size_t size, size_t nmemb, void* result) {
 CURLcode get_results(char** results, char* url) {
 	curl_global_init(CURL_GLOBAL_ALL);
 	CURL * handle;
-	CURLcode res;
-
-        struct String s;
-        s.len = 0;
-        if ((s.str = malloc(RESPONSE_MAX)) == NULL) {
-                fprintf(stderr, "Error allocating memory.\n");
-                return CURLE_WRITE_ERROR;
-        }
-        s.str[0] = '\0';
-
+    
+    struct String s;
+    s.len = 0;
+    if ((s.str = malloc(RESPONSE_MAX)) == NULL) {
+        fprintf(stderr, "Error allocating memory.\n");
+        return CURLE_WRITE_ERROR;
+    }
+    s.str[0] = '\0';
+    
 	if (VERBOSE) {
 		printf("Making request to URL: %s\n", url);
 	}
-
+    
 	handle = curl_easy_init();
-
-        curl_easy_setopt(handle, CURLOPT_URL, url);
-        curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_string);
-        curl_easy_setopt(handle, CURLOPT_WRITEDATA, &s);
-
-        CURLcode rv = curl_easy_perform(handle);
-
-        curl_easy_cleanup(handle);
-
+    
+    curl_easy_setopt(handle, CURLOPT_URL, url);
+    curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_string);
+    curl_easy_setopt(handle, CURLOPT_WRITEDATA, &s);
+    
+    CURLcode rv = curl_easy_perform(handle);
+    
+    curl_easy_cleanup(handle);
+    
 	if (VERBOSE) {
 		printf("CURL Result: [%d] %s\n", rv, curl_easy_strerror(rv));
 		printf("\nResponse:\n%s\n", s.str);
 	}
-
-        *results = s.str;
-
-        return rv;
+    
+    *results = s.str;
+    
+    return rv;
 }
 
 /**
@@ -115,7 +108,7 @@ CURLcode get_results(char** results, char* url) {
  * @param query			String to search for
  * @param nResults		Number of results to return
  * @returns			CURLcode returned by curl operation
-*/
+ */
 int get_json_results(char** results, char* query, int nResults) {
 	
 	char* cseId, *apiKey;
@@ -129,12 +122,12 @@ int get_json_results(char** results, char* query, int nResults) {
 	}
 	
 	replace_spaces(&query);
-
+    
 	char url[URL_MAX];
 	sprintf(url, INPUT_SEARCH_F, cseId, apiKey, nResults, query);
 	
 	int rv = get_results(results, url);
-
+    
 	return rv;
 }
 
@@ -148,21 +141,21 @@ int get_json_results(char** results, char* query, int nResults) {
 int extract_image_urls(char*** imageURLs, int* nImages, char* jsonResult) {
 	json_t* root;
 	json_error_t error;
-
+    
 	int i;
-
+    
 	root = json_loads(jsonResult, 0, &error);
 	if (!root) {
 		fprintf(stderr, "Error parsing JSON: %s\n", error.text);
 		return -1;
-	}	
-
+	}
+    
 	json_t* items;
 	items = json_object_get(root, "items");
 	*nImages = json_array_size(items);
-
+    
 	*imageURLs = malloc(*nImages*sizeof(char));
-
+    
 	int nImagesExtracted = 0;
 	for (i = 0; i < *nImages; i++) {
 		json_t* item = json_array_get(items, i);
@@ -171,12 +164,12 @@ int extract_image_urls(char*** imageURLs, int* nImages, char* jsonResult) {
 		(*imageURLs)[i] = malloc(strlen(link_text)+1);
 		strcpy((*imageURLs)[i], link_text);
 		nImagesExtracted++;
-
+        
 		if (VERBOSE) {
 			printf("Extracted image URL: %s\n", link_text);
 		}
 	}
-
+    
 	if (VERBOSE) {
 		printf("Extracted %d images.\n", nImagesExtracted);
 	}
@@ -185,7 +178,7 @@ int extract_image_urls(char*** imageURLs, int* nImages, char* jsonResult) {
 }
 
 /**
- * CURLOPT_WRITEFUNCTION callback handler 
+ * CURLOPT_WRITEFUNCTION callback handler
  * For writing CURL response data to (FILE *) stream.
  */
 size_t write_file(void *ptr, size_t size, size_t nmemb, FILE *stream) {
@@ -204,19 +197,20 @@ int download_image(char* filename, char* url) {
 	CURL* handle;
 	FILE* file;
 	CURLcode res;
-
+    
 	handle  = curl_easy_init();
 	if (handle) {
 		if((file = fopen(filename, "wb")) == NULL) {
+            perror(file);
 			fprintf(stderr, "Error: could not open file \"%s\" for image download.\n", filename);
 			return -1;
 		}
-
+        
 		curl_easy_setopt(handle, CURLOPT_URL, url);
 		curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_file);
 		curl_easy_setopt(handle, CURLOPT_WRITEDATA, file);
 		res = curl_easy_perform(handle);
-
+        
 		curl_easy_cleanup(handle);
 		if(fclose(file) != 0) {
 			fprintf(stderr, "Error: could not close file \"%s\" after image download.\n", filename);
@@ -227,11 +221,11 @@ int download_image(char* filename, char* url) {
 		fprintf(stderr, "Downloading image \"%s\" unsuccessful. CURL Result: [%d] %s\n", url, res, curl_easy_strerror(res));
 		return -1;
 	}
-
+    
 	if (VERBOSE) {
 		printf("%s was downloaded to %s\n", url, filename);
 	}
-
+    
 	return 0;
 }
 
@@ -243,45 +237,45 @@ int download_image(char* filename, char* url) {
  * @return			Number of images successfully downloaded
  */
 int download_images(char*** images, char* query, int nResults) {
-        char* results;
-        CURLcode r = get_json_results(&results, query, nResults);
-        if (r != CURLE_OK) {
-                fprintf(stderr, "Request unsuccessful: %s\n", curl_easy_strerror(r));
-                return -1;
-        }
-
-        char** imageURLs;
-        int nImages;
-        if (extract_image_urls(&imageURLs, &nImages, results) <= 0) {
-                fprintf(stderr, "Could not parse image URLS.\n");
-                return -1;
-        }
-
-	*images = malloc(nImages*sizeof(char*));
+    char* results;
+    CURLcode r = get_json_results(&results, query, nResults);
+    if (r != CURLE_OK) {
+        fprintf(stderr, "Request unsuccessful: %s\n", curl_easy_strerror(r));
+        return -1;
+    }
+    
+    char** imageURLs;
+    int nImages;
+    if (extract_image_urls(&imageURLs, &nImages, results) <= 0) {
+        fprintf(stderr, "Could not parse image URLS.\n");
+        return -1;
+    }
+    
+    *images = malloc(nImages*sizeof(char*));
 	
-        int i;
-	int nImagesDownloaded = 0;
-        for (i = 0; i < nImages; i++) {
+    int i;
+    int nImagesDownloaded = 0;
+    for (i = 0; i < nImages; i++) {
 		(*images)[nImagesDownloaded] = malloc(25*sizeof(char));
 		sprintf((*images)[nImagesDownloaded], "imkea-src-images/img%d", nImagesDownloaded);
-                int r = download_image((*images)[nImagesDownloaded], imageURLs[i]);
+        int r = download_image((*images)[nImagesDownloaded], imageURLs[i]);
 		if (r == 0) {
 			nImagesDownloaded++;
 		}
-        }
-
+    }
+    
 	if (VERBOSE) {
 		printf("%d images downloaded.\n", nImagesDownloaded);
 	}
-
-        return nImagesDownloaded;
+    
+    return nImagesDownloaded;
 }
 
 /**
  * Opens a URL in the user's default browser.
  * @param URL			URL to open
  * @returns			0 if successful
-*/
+ */
 int open_webpage(char* URL) {
 	// TODO: implement
 	printf("%s\n", URL);
@@ -292,13 +286,13 @@ int open_webpage(char* URL) {
 /**
  * Opens an image search based on a query.
  * @param query			space delimited full query to search for
-*/
+ */
 void open_image_search(char* query) {
 	replace_spaces(&query);
 	char* url = (char*) malloc(URL_MAX*sizeof(char));
 	char* url_f = IMKEA_OUTPUT_SEARCH ? IMKEA_OUTPUT_SEARCH_F : OUTPUT_SEARCH_F;
 	sprintf(url, url_f, query);
-
+    
 	if (open_webpage(url) != 0) {
 		fprintf(stderr, "Error: could not open webpage for:\n%s\n", url);
 	}

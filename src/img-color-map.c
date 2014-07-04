@@ -9,8 +9,9 @@
 #include "img-color-map.h"
 
 #define COLOR_MAP_FILE "assets/lab_db.txt"
+#define NUM_COLORS 20 //number of colors to read from lab_db.txt
 
-/**
+/*
  * Given a name, create a new pixelcolor element initialized to 1 occurrence
  * @param name	The name of the color being initialized
  * @param rv	A pointer to memory for the pixel color element
@@ -21,6 +22,39 @@ void createPixelColor(char* name, pixelColor* rv){
 }
 
 /**
+ * Given a colorDB text file, load and initialize colors in struct array
+ * @param array to populate all available colors
+ */
+void createColorDB(colorDB colors[]){
+    FILE* f;
+    char tok[256];
+    int i = 0;
+
+    if ((f = fopen(COLOR_MAP_FILE, "r")) == NULL) { // file descriptor to read from
+        fprintf(stderr, "Could not find color map file: %s\n", COLOR_MAP_FILE);
+    }
+    
+    while(fscanf(f, "%s", tok) > 0){ //read lines in the file
+        char *tmp = strtok(tok, ",");
+        char *arg[4];
+        
+        int j = 0;
+		while(tmp != NULL && j < 4){ //get RGB values and color name from line read from file
+			arg[j] = strdup(tmp);
+			++j;
+            tmp = strtok(NULL, ",");
+		}
+        
+        colors[i].L = atoi(arg[0]);
+        colors[i].a = atoi(arg[1]);
+        colors[i].b = atoi(arg[2]);
+        colors[i].name = strdup(arg[3]);
+        ++i;
+    }
+    fclose(f);
+}
+
+/*
  * Finds the CvScalar in colors closest to t using the colorDistance function.
  * @param scolors	The colors to look through
  * @param pColor	Array to store new colors found
@@ -28,13 +62,14 @@ void createPixelColor(char* name, pixelColor* rv){
  * @returns 		0 on success, -1 otherwise
  */
 int assignColor(CvScalar* scolors, pixelColor** pColor, int* pSize, int numColors) {
-	//int rv = 0, // return value
     int i,j; // used to iterate
 	char* res; //stores the result
-    
+    colorDB colors[NUM_COLORS];
+
+    createColorDB(colors);
 	// iterate over scolors
 	for(i = 0; i < numColors; ++i){
-		res = mapColorName(scolors[i]); //retrieve color name
+		res = mapColorName(scolors[i], colors); //retrieve color name
         
         if(res == NULL){
             continue; //no matching color name found
@@ -63,38 +98,27 @@ int assignColor(CvScalar* scolors, pixelColor** pColor, int* pSize, int numColor
     return 0;
 }
 
-/**
- * Given a cvScalar, map its RGB values to a general color name
- * @param scolor	The cvScalar
- * @returns		The char name of the color that best matches RGB
+/*
+ * Given a cvScalar, maps its L*ab values to a general color name
+ * @param scolor	The cvScalar representing subimage average color
+ * @param colors    Array of available colors to test against
+ * @returns		The char name of the color that best matches L*ab
  */
-char* mapColorName(CvScalar scolor){
-    FILE* f;
-    int i=0;
-    char tok[256];
+char* mapColorName(CvScalar scolor, colorDB colors[]){
+    int i;
     double min = -1;
     char* cName = NULL;
-
-    if ((f = fopen(COLOR_MAP_FILE, "r")) == NULL) { // file descriptor to read from
-        fprintf(stderr, "Could not find color map file: %s\n", COLOR_MAP_FILE);
-    }
     
-    while(fscanf(f, "%s", tok) > 0){ //read lines in the file
-        char *tmp = strtok(tok, ",");
-        char *arg[4];
-        i = 0;
+    for(i = 0; i < NUM_COLORS; ++i){
+        if(!(colors[i].name)){
+            continue;
+        }
         
-		while(tmp != NULL && i < 4){ //get RGB values and color name from line read from file
-			arg[i] = strdup(tmp);
-			++i;
-            tmp = strtok(NULL, ",");
-		}
-        
-        double L = atoi(arg[0]);
-        double A = atoi(arg[1]);
-        double B = atoi(arg[2]);
-        char* tmpName = strdup(arg[3]);
-        
+        int L = colors[i].L;
+        int A = colors[i].a;
+        int B = colors[i].b;
+        char* tmpName = colors[i].name;
+
         double d = deltaE(scolor, L, A, B);
         
         if(min == -1 && d < 15){
@@ -108,7 +132,37 @@ char* mapColorName(CvScalar scolor){
             cName = tmpName;
         }
     }
-    fclose(f);
+    
+//    while(fscanf(f, "%s", tok) > 0){ //read lines in the file
+//        char *tmp = strtok(tok, ",");
+//        char *arg[4];
+//        i = 0;
+//        
+//		while(tmp != NULL && i < 4){ //get RGB values and color name from line read from file
+//			arg[i] = strdup(tmp);
+//			++i;
+//            tmp = strtok(NULL, ",");
+//		}
+//        
+//        double L = atoi(arg[0]);
+//        double A = atoi(arg[1]);
+//        double B = atoi(arg[2]);
+//        char* tmpName = strdup(arg[3]);
+//
+//        double d = deltaE(scolor, L, A, B);
+//        
+//        if(min == -1 && d < 15){
+//            min = d;
+//            cName = tmpName;
+//            continue;
+//        }
+//        
+//        if(d < min && d < 15){
+//            min = d; //reset current minimum
+//            cName = tmpName;
+//        }
+//    }
+//    fclose(f);
     return cName; //no matching color found in db
 }
 
@@ -204,9 +258,9 @@ double deltaE(CvScalar scolor, double L2, double A2, double B2){
     
     RGB2LAB(r, g, b, &L1, &A1, &B1);
     
-//    printf("L: %f\n", L1);
-//    printf("a: %f\n", A1);
-//    printf("b: %f\n", B1);
+    //    printf("L: %f\n", L1);
+    //    printf("a: %f\n", A1);
+    //    printf("b: %f\n", B1);
     
     dL = L1 - L2;
     C1 = sqrtf(pow(A1, 2) + pow(B1, 2));
@@ -226,7 +280,7 @@ double deltaE(CvScalar scolor, double L2, double A2, double B2){
     
     double rv = sqrtf(P1 + P2 + P3);
     
-//    printf("deltaE: %f\n\n", rv);
+    //    printf("deltaE: %f\n\n", rv);
     return rv;
 }
 
@@ -235,9 +289,9 @@ double deltaE(CvScalar scolor, double L2, double A2, double B2){
  * @param pColor0		a pixelColor
  * @param pColor1		a pixelColor
  * @returns			<0 if pColor0 should be before pColor1
-				0 if they are equal
-				>0 if pColor0 should be after pColor1
-*/
+ 0 if they are equal
+ >0 if pColor0 should be after pColor1
+ */
 int compareColorFreq(const void* pColor0, const void* pColor1) {
 	pixelColor* p0 = (pixelColor*) pColor0;
 	pixelColor* p1 = (pixelColor*) pColor1;
@@ -251,13 +305,13 @@ int compareColorFreq(const void* pColor0, const void* pColor1) {
  * @returns             String containing names of most recurrent colors
  */
 char* findClosest(pixelColor *pColor, int pSize){
-    int i,j; // iteration
+    int i; // iteration
     char* rv; //return value
     
     rv = malloc(sizeof(char*) * 2048);
     
     if(pSize < 3){
-        printf("Images has less than 3 colors\n");
+        printf("Images have less than 3 colors\n");
         for(i = 0; i < pSize; ++i){
             strcat(rv, pColor[i].name);
             strcat(rv, " ");
@@ -265,7 +319,7 @@ char* findClosest(pixelColor *pColor, int pSize){
         strcat(rv, "Interior Decor");
         return rv;
     }
- 
+    
     // sort pColor
     qsort(pColor, pSize, sizeof(pixelColor), compareColorFreq);
     
@@ -297,7 +351,7 @@ void reorderColors(pixelColor **pColorSort, pixelColor pColor, int position, int
     (*pColorSort)[position] = pColor;
 }
 
-/**
+/*
  * For each image provided, computes the average color vector
  * (represented as a CvScalar object).
  *

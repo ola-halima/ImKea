@@ -15,14 +15,14 @@
 #include "stdlib.h"
 #include "stdio.h"
 
-/**
+/*
  * This is a pixel color struct
  * It contains two members:
- * 	@name: The generalized name of the color based on rgb values
- *	@numOccurrences: The number of times the color appears over all images analyzed
+ * 	@param name     The generalized name of the color based on rgb values
+ *	@param numOccurrences   The number of times the color appears over all images analyzed
  *	For example, given 0,0,0:
  *		@name: "black"
- *		@numOccure: 1 //assuming first occurrence
+ *		@numOccur: 1 //assuming first occurrence
  **/
 typedef struct pixelColor pixelColor;
 struct pixelColor{
@@ -30,7 +30,22 @@ struct pixelColor{
 	int numOccur;
 };
 
-/**
+/*
+ * colorDB struct to hold all available mapping colors 
+ * and L*ab values of the colors
+ * @param name  color name
+ * @param L     L value of color
+ * @param a     a value of color
+ * @param b     b value of color
+ **/
+typedef struct colorDB colorDB;
+struct colorDB{
+    char* name;
+    double L;
+    double a;
+    double b;
+};
+/*
  * Given a name, create a new pixelColor element initialized to 1 occurence
  * @param name	The name of the color being initialized
  * @param rv	A pointer to memory for the pixel color element
@@ -38,6 +53,12 @@ struct pixelColor{
 void createPixelColor(char* name, pixelColor* rv);
 
 /**
+ * Given a colorDB text file, load and initialize colors in struct array
+ * @param array to populate all available colors
+ */
+void createColorDB(colorDB colors[]);
+
+/*
  * Finds the CvScalar in colors closest to t using the colorDistance function.
  * @param scolors	The colors to look through
  * @param pColor	Array to store new colors found
@@ -47,11 +68,12 @@ void createPixelColor(char* name, pixelColor* rv);
 int assignColor(CvScalar* scolors, pixelColor** pColor, int* pSize, int numColors);
 
 /*
- * Given a cvScalar, maps its RGB values to a general color name
+ * Given a cvScalar, maps its L*ab values to a general color name
  * @param scolor	The cvScalar representing subimage average color
- * @returns		The char name of the color that best matches RGB
+ * @param colors    Array of available colors to test against
+ * @returns		The char name of the color that best matches L*ab
  */
-char* mapColorName(CvScalar scolor);
+char* mapColorName(CvScalar scolor, colorDB colors[]);
 
 /*
  * Convert RGB values to L*ab
@@ -88,7 +110,7 @@ char* findClosest(pixelColor *pColor, int pSize);
  */
 void reorderColors(pixelColor **pColorSort, pixelColor pColor, int position, int numSortedColors);
  
-/**
+/*
  * For each image provided, computes the average color vector
  * (represented as a CvScalar object).
  *

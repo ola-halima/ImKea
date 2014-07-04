@@ -23,7 +23,7 @@ int main(int argc, char ** argv) {
             **subImages; // small sub images created from the source image
     CvScalar *scolors; // the average colors of the sub images of the source image
     pixelColor *pColor; // the pixel colors possible
-    int pSize = 0;
+    int pSize = 0;      //total number of pixel colors in all images analyzed
     char* design_query; //resulting query to pass to search engine to find designs
 
     searchTerm = argv[1];
@@ -60,7 +60,7 @@ int main(int argc, char ** argv) {
         printf("Getting avg colors of %s\n", images[i]);
         scolors = getAvgColors(subImages, numColumns * numRows);
         
-	// assign found dominant colors to image
+        // assign found dominant colors to image
         printf("Assigning colors for %s\n\n", images[i]);
         if(assignColor(scolors, &pColor, &pSize, numColumns * numRows) != 0) { // map RGB to color name
             perror("Error mapping RGB to general color");
