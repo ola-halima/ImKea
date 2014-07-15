@@ -1,6 +1,7 @@
 97,22,94,Yellow
 85,0,86,Yellow
-53,80,67,Red
+255,239,0,Yellow
+255,0,0,Red
 26,48,38,Red
 88,-86,83,Lime
 46,-52,50,Green
@@ -11,9 +12,9 @@
 26,32,-58,Blue
 33,43,-47,Purple
 81,42,-27,Pink
-100,0,0,White
-44,16,49,Brown
-73,29,71,Orange
-67,43,74,Orange
-86,10,29,Beige
-0,0,0,Black
+240,240,240,White
+150,75,0,Brown
+255,165,0,Orange
+255,127,0,Orange
+195,176,145,Beige
+7,7,7,Black

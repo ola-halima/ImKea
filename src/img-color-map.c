@@ -132,37 +132,6 @@ char* mapColorName(CvScalar scolor, colorDB colors[]){
             cName = tmpName;
         }
     }
-    
-//    while(fscanf(f, "%s", tok) > 0){ //read lines in the file
-//        char *tmp = strtok(tok, ",");
-//        char *arg[4];
-//        i = 0;
-//        
-//		while(tmp != NULL && i < 4){ //get RGB values and color name from line read from file
-//			arg[i] = strdup(tmp);
-//			++i;
-//            tmp = strtok(NULL, ",");
-//		}
-//        
-//        double L = atoi(arg[0]);
-//        double A = atoi(arg[1]);
-//        double B = atoi(arg[2]);
-//        char* tmpName = strdup(arg[3]);
-//
-//        double d = deltaE(scolor, L, A, B);
-//        
-//        if(min == -1 && d < 15){
-//            min = d;
-//            cName = tmpName;
-//            continue;
-//        }
-//        
-//        if(d < min && d < 15){
-//            min = d; //reset current minimum
-//            cName = tmpName;
-//        }
-//    }
-//    fclose(f);
     return cName; //no matching color found in db
 }
 
@@ -258,10 +227,6 @@ double deltaE(CvScalar scolor, double L2, double A2, double B2){
     
     RGB2LAB(r, g, b, &L1, &A1, &B1);
     
-    //    printf("L: %f\n", L1);
-    //    printf("a: %f\n", A1);
-    //    printf("b: %f\n", B1);
-    
     dL = L1 - L2;
     C1 = sqrtf(pow(A1, 2) + pow(B1, 2));
     C2 = sqrtf(pow(A2, 2) + pow(B2, 2));
@@ -307,29 +272,21 @@ int compareColorFreq(const void* pColor0, const void* pColor1) {
 char* findClosest(pixelColor *pColor, int pSize){
     int i; // iteration
     char* rv; //return value
+    int minOccur; //minimum occurrence a color must have to be displayed in result
     
     rv = malloc(sizeof(char*) * 2048);
     
-    if(pSize < 3){
-        printf("Images have less than 3 colors\n");
-        for(i = 0; i < pSize; ++i){
-            strcat(rv, pColor[i].name);
-            strcat(rv, " ");
-        }
-        strcat(rv, "Interior Decor");
-        return rv;
-    }
-    
     // sort pColor
     qsort(pColor, pSize, sizeof(pixelColor), compareColorFreq);
+    minOccur = (pColor[0].numOccur)/5;
     
-    //create final string to search
-    strcat(rv, pColor[0].name);
-    strcat(rv, " ");
-    strcat(rv, pColor[1].name);
-    strcat(rv, " ");
-    strcat(rv, pColor[2].name);
-    strcat(rv, " ");
+    for(i = 0; i < pSize; ++i){
+        if(!pColor[i].name || pColor[i].numOccur < minOccur){
+            break;
+        }
+        strcat(rv, pColor[i].name);
+        strcat(rv, " ");
+    }
     strcat(rv, "Interior Decor");
     return rv;
 }
